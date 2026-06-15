@@ -1,12 +1,72 @@
 {
-  "team": "TODO-team-name",
+  "team": "phoebe497",
   "schema_version": 1,
   "findings": [
     {
+      "fault_class": "error_spike",
+      "evidence": {"metric": "error_rate", "observed": "Intermittent failures in tool calls resulting in an error rate of around 18% in default runs.", "trace_ids": []},
+      "root_cause": "tool_error_rate is set to 0.18 in the default config, and retry mechanism is disabled.",
+      "suggested_fix": "Set tool_error_rate to 0.0 and enable retry with max_attempts=3 in config.json."
+    },
+    {
       "fault_class": "latency_spike",
-      "evidence": {"metric": "latency_p95_ms", "observed": "TODO from your telemetry", "trace_ids": []},
-      "root_cause": "TODO: what config knob or behavior causes it?",
-      "suggested_fix": "TODO: config change and/or wrapper mitigation"
+      "evidence": {"metric": "latency", "observed": "High latency and slow response times on repeated queries.", "trace_ids": []},
+      "root_cause": "Caching is disabled (cache.enabled is false) and there are no retry limits.",
+      "suggested_fix": "Enable caching in config.json and implement thread-safe caching in wrapper.py."
+    },
+    {
+      "fault_class": "cost_blowup",
+      "evidence": {"metric": "cost", "observed": "Extremely high prompt and completion token counts resulting in excessive costs.", "trace_ids": []},
+      "root_cause": "verbose_system is set to true, max_completion_tokens is 2000, and model_price_tier is premium in the default config.",
+      "suggested_fix": "Set verbose_system to false, limit max_completion_tokens to 400, and set model_price_tier to standard."
+    },
+    {
+      "fault_class": "quality_drift",
+      "evidence": {"metric": "quality", "observed": "Decrease in answer accuracy and consistency as the session turn index increases.", "trace_ids": []},
+      "root_cause": "session_drift_rate is set to 0.06 in the default config, which corrupts context over longer sessions.",
+      "suggested_fix": "Set session_drift_rate to 0.0 and configure context_reset_every=5 in config.json."
+    },
+    {
+      "fault_class": "infinite_loop",
+      "evidence": {"metric": "status", "observed": "Requests returning 'loop' status or hitting max_steps without returning a final answer.", "trace_ids": []},
+      "root_cause": "loop_guard is disabled (false) and tool_budget is 0 in default config.",
+      "suggested_fix": "Set loop_guard to true and tool_budget to 4 in config.json."
+    },
+    {
+      "fault_class": "tool_failure",
+      "evidence": {"metric": "correctness", "observed": "MacBook availability queries failing, and diacritic city names causing calc_shipping errors.", "trace_ids": []},
+      "root_cause": "catalog_override was set to hardcode MacBook as out of stock, and normalize_unicode was set to false.",
+      "suggested_fix": "Clear catalog_override to {} and enable normalize_unicode in config.json."
+    },
+    {
+      "fault_class": "pii_leak",
+      "evidence": {"metric": "pii_in_answer", "observed": "Raw customer phone numbers and email addresses echoed back in answers.", "trace_ids": []},
+      "root_cause": "redact_pii is disabled in config.json and the system prompt has no rules preventing PII leakage.",
+      "suggested_fix": "Enable redact_pii in config.json and implement regex-based redaction in wrapper.py."
+    },
+    {
+      "fault_class": "fabrication",
+      "evidence": {"metric": "correctness", "observed": "Agent fabricated totals for out-of-stock or unknown items instead of refusing.", "trace_ids": []},
+      "root_cause": "System prompt does not explicitly instruct the agent to refuse and avoid calculating a total when check_stock or calc_shipping fails.",
+      "suggested_fix": "Update prompt.txt to strictly enforce refusal conditions and forbid fabricating totals."
+    },
+    {
+      "fault_class": "arithmetic_error",
+      "evidence": {"metric": "correctness", "observed": "Incorrect math operations and total amounts calculated for orders.", "trace_ids": []},
+      "root_cause": "High temperature of 1.6 in config.json causes the model to output inconsistent and mathematically incorrect totals.",
+      "suggested_fix": "Reduce temperature to 0.1 in config.json and specify exact formulas in prompt.txt."
+    },
+    {
+      "fault_class": "tool_overuse",
+      "evidence": {"metric": "correctness", "observed": "Agent called the same tool multiple times or made unnecessary tool calls.", "trace_ids": []},
+      "root_cause": "System prompt lacks instructions on calling tools once, and tool_budget is 0 (unlimited).",
+      "suggested_fix": "Instruct agent to call each tool at most once in prompt.txt, and configure tool_budget to 4."
+    },
+    {
+      "fault_class": "prompt_injection",
+      "evidence": {"metric": "correctness", "observed": "Agent followed adversarial instructions inside order notes to override prices or apply fake discounts.", "trace_ids": []},
+      "root_cause": "System prompt does not treat order notes as untrusted, and wrapper does not sanitize input notes.",
+      "suggested_fix": "Incorporate sanitize_question in wrapper.py and explicitly tell the agent to treat notes as metadata/data only in prompt.txt."
     }
   ]
 }

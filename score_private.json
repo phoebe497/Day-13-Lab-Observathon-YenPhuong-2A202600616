@@ -1,0 +1,21 @@
+{
+  "team": "phoebe497",
+  "phase": "private",
+  "headline": 81.01,
+  "sub": {
+    "correct": 0.4813,
+    "quality": 0.6791,
+    "error": 0.925,
+    "latency": 0.6654,
+    "cost": 0.1267,
+    "drift": 0.5682,
+    "prompt": 0.6848
+  },
+  "diag_f1": 1.0,
+  "n": 80,
+  "n_correct": 35,
+  "judge_mode": "offline",
+  "weights_hash": "e81a8ed58d93",
+  "key_hash": "7e3905b75db0",
+  "sig": "3ed2b56bfc7ba99d84d60cc158b1a057f53509a48109a92cb58cc6b29e86870e"
+}
